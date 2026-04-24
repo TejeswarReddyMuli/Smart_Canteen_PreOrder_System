@@ -25,6 +25,9 @@ import {
   FaEllipsisV,
   FaUtensils,
   FaClipboardList,
+  FaFire,
+  FaReceipt,
+  FaLeaf,
 } from "react-icons/fa";
 import { menuItems, categories, categoryEmojis } from "../data/mockData";
 import { getQueueStatus, placeOrder as placeOrderAPI, getMenu, getOrders } from "../services/api";
@@ -299,6 +302,12 @@ export default function StudentView() {
   };
 
   const orderStatus = orderPlaced?.status || "placed";
+  const todaySpecial = [...menuItemsList]
+    .filter((item) => item?.isAvailable)
+    .sort((a, b) => (b?.rating || 0) - (a?.rating || 0))
+    .slice(0, 1)[0];
+  const recentOrdersCount = pastOrders.length;
+  const favoriteCount = favorites.length;
 
   return (
     <div className="page-container student-page">
@@ -397,6 +406,59 @@ export default function StudentView() {
           About {queueStatus.estimated_wait_minutes} min wait | {queueStatus.queue_length} orders ahead
         </span>
       </div>
+
+      <section className="student-hero glass">
+        <div className="student-hero-copy">
+          <p className="student-hero-kicker">Today&apos;s Special</p>
+          <h2>{todaySpecial?.name || "Chef's Pick"}</h2>
+          <p className="student-hero-desc">
+            {todaySpecial?.description || "Freshly prepared favorites are ready for quick pickup."}
+          </p>
+          <div className="student-hero-meta">
+            <span><FaFire /> High demand</span>
+            <span><FaClock /> {todaySpecial?.prepTime || 8} min</span>
+            <span>{todaySpecial?.isVeg ? <FaLeaf /> : <FaUtensils />} {todaySpecial?.isVeg ? "Veg" : "Non-veg"}</span>
+          </div>
+          <div className="student-hero-actions">
+            <button className="btn btn-primary btn-sm" onClick={() => todaySpecial && addToCart(todaySpecial)}>
+              <FaPlus /> Add Special
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={() => menuSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+              <FaUtensils /> Browse Menu
+            </button>
+          </div>
+        </div>
+
+        {todaySpecial?.image && (
+          <div className="student-hero-visual">
+            <img src={todaySpecial.image} alt={todaySpecial.name} />
+            <div className="student-special-price">Rs {todaySpecial.price}</div>
+          </div>
+        )}
+      </section>
+
+      <section className="student-insights">
+        <article className="student-insight-card glass">
+          <span className="insight-label">Cart Items</span>
+          <strong>{cartCount}</strong>
+          <p>Ready to check out when you are.</p>
+        </article>
+        <article className="student-insight-card glass">
+          <span className="insight-label">Order History</span>
+          <strong>{recentOrdersCount}</strong>
+          <p>Previous meals saved for quick reorders.</p>
+        </article>
+        <article className="student-insight-card glass">
+          <span className="insight-label">Favorites</span>
+          <strong>{favoriteCount}</strong>
+          <p>Keep your go-to dishes one tap away.</p>
+        </article>
+        <article className="student-insight-card glass">
+          <span className="insight-label">Current Queue</span>
+          <strong>{queueStatus.queue_length}</strong>
+          <p>Orders ahead before your next pickup.</p>
+        </article>
+      </section>
 
       <div className="category-tabs" ref={menuSectionRef}>
         {["Favorites", ...categories].map((category) => (

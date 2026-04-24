@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { FaArrowLeft, FaClipboardList, FaBoxes, FaCalendarAlt, FaPlay, FaCheck, FaCheckDouble, FaClock, FaExclamationTriangle, FaToggleOn, FaToggleOff, FaSyncAlt, FaMoon, FaSun, FaUsers } from "react-icons/fa";
+import { FaArrowLeft, FaClipboardList, FaBoxes, FaCalendarAlt, FaPlay, FaCheck, FaCheckDouble, FaClock, FaExclamationTriangle, FaToggleOn, FaToggleOff, FaSyncAlt, FaMoon, FaSun, FaUsers, FaFire, FaWallet } from "react-icons/fa";
 import { menuItems } from "../data/mockData";
 import { getOrders, updateOrderStatus as updateOrderAPI, getBookings, getTables, updateTableStatus as updateTableStatusAPI, updateItemAvailability, getInventory } from "../services/api";
 import "./ManagerView.css";
@@ -125,6 +125,8 @@ export default function ManagerView() {
   const activeOrders = orders.filter((o) => o.status !== "completed");
   const todayRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
   const activeBookingsCount = bookings.filter(b => b.status === "confirmed").length;
+  const lowStockItems = inventory.filter((item) => item.stock <= 5);
+  const featuredOrder = activeOrders[0];
 
   return (
     <div className="page-container manager-page">
@@ -170,6 +172,41 @@ export default function ManagerView() {
           <div className="kpi-label">Active Bookings</div>
         </div>
       </div>
+
+      <section className="manager-overview">
+        <article className="manager-spotlight glass">
+          <div className="manager-spotlight-copy">
+            <p className="manager-kicker">Operations Spotlight</p>
+            <h3>{featuredOrder ? `Order ${featuredOrder.id} needs attention` : "Kitchen running smoothly"}</h3>
+            <p>
+              {featuredOrder
+                ? `${featuredOrder.student_name} has ${featuredOrder.items.length} items in the current flow. Move it quickly to keep the queue healthy.`
+                : "No urgent live orders at the moment. You can use this window to tidy stock and table status."}
+            </p>
+            <div className="manager-spotlight-meta">
+              <span><FaFire /> {activeOrders.length} active orders</span>
+              <span><FaWallet /> Rs {todayRevenue} revenue today</span>
+            </div>
+          </div>
+        </article>
+
+        <article className="manager-alerts glass">
+          <div className="manager-alerts-header">
+            <h3>Quick Alerts</h3>
+            <span>{lowStockItems.length} low stock</span>
+          </div>
+          {lowStockItems.length === 0 ? (
+            <p className="manager-alert-empty">Inventory looks healthy right now.</p>
+          ) : (
+            lowStockItems.slice(0, 4).map((item) => (
+              <div key={item.id} className="manager-alert-item">
+                <span>{item.name}</span>
+                <strong>{item.stock} left</strong>
+              </div>
+            ))
+          )}
+        </article>
+      </section>
 
       {/* Tab Navigation */}
       <div className="manager-tabs">
