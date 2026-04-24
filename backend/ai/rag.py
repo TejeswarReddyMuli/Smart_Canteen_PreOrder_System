@@ -18,28 +18,33 @@ def load_menu_documents():
 
     # Create a document for each menu item
     for item in data["menu_items"]:
+        nutrition = item.get('nutrition', {'calories': 0, 'protein': 0, 'carbs': 0, 'fat': 0})
+        tags = item.get('tags', [])
+        allergens = item.get('allergens', [])
+        orders_month = item.get('ordersThisMonth', 0)
+        
         doc = f"""Menu Item: {item['name']}
 Category: {item['category']}
 Price: ₹{item['price']}
 Preparation Time: {item['prepTime']} minutes
-Description: {item['description']}
-Nutrition: {item['nutrition']['calories']} calories, {item['nutrition']['protein']}g protein, {item['nutrition']['carbs']}g carbs, {item['nutrition']['fat']}g fat
-Tags: {', '.join(item['tags'])}
-Allergens: {', '.join(item['allergens']) if item['allergens'] else 'None'}
-Student Rating: {item['rating']}/5
-Monthly Orders: {item['ordersThisMonth']}
-Available: {'Yes' if item['isAvailable'] else 'No'}
-Stock Remaining: {item['stock']}"""
+Description: {item.get('description', '')}
+Nutrition: {nutrition.get('calories', 0)} calories, {nutrition.get('protein', 0)}g protein, {nutrition.get('carbs', 0)}g carbs, {nutrition.get('fat', 0)}g fat
+Tags: {', '.join(tags)}
+Allergens: {', '.join(allergens) if allergens else 'None'}
+Student Rating: {item.get('rating', 4.0)}/5
+Monthly Orders: {orders_month}
+Available: {'Yes' if item.get('isAvailable', True) else 'No'}
+Stock Remaining: {item.get('stock', 0)}"""
         documents.append(doc)
 
     # Add canteen info
-    info = data["canteen_info"]
-    canteen_doc = f"""Canteen Name: {info['name']}
-Operating Hours: {info['operating_hours']}
-Seating Capacity: {info['seating_capacity']} people
-Number of Tables: {info['number_of_tables']}
-Active Cooking Stations: {info['active_cooking_stations']}
-Policies: {' | '.join(info['policies'])}"""
+    info = data.get("canteen_info", {})
+    canteen_doc = f"""Canteen Name: {info.get('name', 'Smart Canteen')}
+Operating Hours: {info.get('operating_hours', '08:00 AM - 08:00 PM')}
+Seating Capacity: {info.get('seating_capacity', 100)} people
+Number of Tables: {info.get('number_of_tables', 20)}
+Active Cooking Stations: {info.get('active_cooking_stations', 4)}
+Policies: {' | '.join(info.get('policies', []))}"""
     documents.append(canteen_doc)
 
     return documents

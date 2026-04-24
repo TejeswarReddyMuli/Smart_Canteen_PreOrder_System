@@ -208,7 +208,14 @@ export default function ManagerView() {
                         {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
                     </div>
-                    <p className="order-student">👤 {order.student_name}</p>
+                    <p className="order-student">
+                      👤 {order.student_name}
+                      {order.payment_mode && (
+                        <span className={`badge badge-sm badge-${order.payment_mode === 'cash' ? 'yellow' : 'cyan'}`} style={{ marginLeft: '8px' }}>
+                          {order.payment_mode.toUpperCase()}
+                        </span>
+                      )}
+                    </p>
                     <div className="order-items">
                       {order.items.map((item, j) => (
                         <div key={j} className="order-item-row">

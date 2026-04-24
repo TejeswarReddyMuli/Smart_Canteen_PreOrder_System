@@ -101,13 +101,15 @@ def get_chain():
     return _chain
 
 
-async def chat_with_agent(message: str) -> dict:
+async def chat_with_agent(message: str, user_history: str = "") -> dict:
     """Process a chat message through the LangChain RAG chain."""
     chain = get_chain()
 
-    # Enhance message with queue context
+    # Enhance message with queue and history context
     queue = get_queue_status()
     enhanced_message = f"{message}\n\n[Current Queue: {queue['queue_length']} orders, ~{queue['estimated_wait_minutes']} min wait]"
+    if user_history:
+        enhanced_message += f"\n[User's Past Orders (for personalization): {user_history}]"
 
     try:
         response_text = chain.invoke(enhanced_message)

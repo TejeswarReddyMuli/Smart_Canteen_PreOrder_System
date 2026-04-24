@@ -5,6 +5,7 @@ from typing import List, Optional
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = "default"
+    user_history: Optional[str] = ""
 
 
 class ChatResponse(BaseModel):

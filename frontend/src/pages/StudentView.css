@@ -594,3 +594,193 @@
     width: auto;
   }
 }
+
+/* ========== Payment Mode Selector ========== */
+.payment-section {
+  margin: 16px 0 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+}
+
+.payment-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.payment-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.payment-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-color);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.72rem;
+  font-weight: 600;
+  position: relative;
+}
+
+.payment-btn:hover {
+  border-color: var(--text-muted);
+  transform: translateY(-2px);
+}
+
+.payment-btn.active {
+  color: var(--text-primary);
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.payment-icon {
+  font-size: 1.2rem;
+  transition: color 0.3s;
+}
+
+.payment-check {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  font-size: 0.55rem;
+}
+
+/* ========== New Features UI ========== */
+.filters-bar {
+  display: flex;
+  gap: 12px;
+  padding: 0 20px 16px;
+  align-items: center;
+}
+
+.search-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-glass);
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.search-icon {
+  color: var(--text-muted);
+}
+
+.btn-veg-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.veg-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background 0.3s;
+}
+
+.btn-veg-toggle.active {
+  background: rgba(0, 184, 148, 0.1);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.btn-veg-toggle.active .veg-dot {
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+
+.btn-favorite {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: var(--text-muted);
+  z-index: 10;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-favorite:hover {
+  transform: scale(1.1);
+}
+
+.btn-favorite.active {
+  color: #ff4757;
+  background: white;
+}
+
+.diet-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid;
+  border-radius: 2px;
+  position: relative;
+}
+
+.diet-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.diet-indicator.veg {
+  border-color: var(--green);
+}
+
+.diet-indicator.veg::after {
+  background: var(--green);
+}
+
+.diet-indicator.non-veg {
+  border-color: var(--red);
+}
+
+.diet-indicator.non-veg::after {
+  background: var(--red);
+}

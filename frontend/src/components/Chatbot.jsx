@@ -37,7 +37,16 @@ export default function Chatbot() {
     setIsTyping(true);
 
     try {
-      const result = await sendChatMessage(text);
+      let pastOrders = [];
+      try {
+        const saved = sessionStorage.getItem("canteen_orders");
+        pastOrders = saved && saved !== "undefined" ? JSON.parse(saved) : [];
+        if (!Array.isArray(pastOrders)) pastOrders = [];
+      } catch { pastOrders = []; }
+      
+      const historyStr = pastOrders.map(o => (o.items || []).map(i => i.item_name).join(", ")).join(" | ");
+      
+      const result = await sendChatMessage(text, "default", historyStr);
       setMessages((prev) => [
         ...prev,
         { role: "bot", text: result.response, suggestions: result.suggestions },

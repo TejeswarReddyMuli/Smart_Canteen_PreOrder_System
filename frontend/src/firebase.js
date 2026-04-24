@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA6nEPr6a_EJ-NyS5I_xVRFT85JYC0rOhg",
-  authDomain: "smartcanteen-7f879.firebaseapp.com",
-  projectId: "smartcanteen-7f879",
-  storageBucket: "smartcanteen-7f879.firebasestorage.app",
-  messagingSenderId: "345436231047",
-  appId: "1:345436231047:web:4e57999a783e7f0d802f22",
-  measurementId: "G-XXSF0G78B1"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);

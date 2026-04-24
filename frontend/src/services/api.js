@@ -20,10 +20,10 @@ async function apiFetch(endpoint, options = {}) {
 
 // =================== CHAT / AI ===================
 
-export async function sendChatMessage(message, sessionId = "default") {
+export async function sendChatMessage(message, sessionId = "default", userHistory = "") {
   const result = await apiFetch("/chat", {
     method: "POST",
-    body: JSON.stringify({ message, session_id: sessionId }),
+    body: JSON.stringify({ message, session_id: sessionId, user_history: userHistory }),
   });
 
   if (!result) {

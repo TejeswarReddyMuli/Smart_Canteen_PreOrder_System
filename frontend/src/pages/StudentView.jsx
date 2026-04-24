@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { FaShoppingCart, FaArrowLeft, FaBell, FaWallet, FaMinus, FaPlus, FaTimes, FaStar, FaBolt, FaClock, FaMoon, FaSun, FaCheck } from "react-icons/fa";
+import { FaShoppingCart, FaArrowLeft, FaBell, FaWallet, FaMinus, FaPlus, FaTimes, FaStar, FaBolt, FaClock, FaMoon, FaSun, FaCheck, FaCreditCard, FaMoneyBillWave, FaMobileAlt, FaSearch, FaLeaf, FaHeart, FaRegHeart, FaHistory } from "react-icons/fa";
 import { menuItems, categories, categoryEmojis } from "../data/mockData";
 import { getQueueStatus, placeOrder as placeOrderAPI, getMenu, getOrders } from "../services/api";
 import Chatbot from "../components/Chatbot";
@@ -13,14 +13,42 @@ export default function StudentView() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
+  const [paymentMode, setPaymentMode] = useState("upi");
   const [queueStatus, setQueueStatus] = useState({ queue_length: 0, estimated_wait_minutes: 5 });
   const [menuItemsList, setMenuItemsList] = useState(menuItems);
   const [orderPlaced, setOrderPlaced] = useState(() => {
-    const saved = sessionStorage.getItem("active_order_tracking");
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = sessionStorage.getItem("active_order_tracking");
+      return saved && saved !== "undefined" ? JSON.parse(saved) : null;
+    } catch { return null; }
   });
   const [toast, setToast] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  
+  // New Feature States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [vegOnly, setVegOnly] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const userName = sessionStorage.getItem("userName") || "Student";
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`favorites_${sessionStorage.getItem("userName") || "Student"}`);
+      const parsed = saved && saved !== "undefined" ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  });
+
+  let pastOrders = [];
+  try {
+    const saved = sessionStorage.getItem("canteen_orders");
+    pastOrders = saved && saved !== "undefined" ? JSON.parse(saved) : [];
+    if (!Array.isArray(pastOrders)) pastOrders = [];
+  } catch { pastOrders = []; }
+
+  // Sync favorites
+  useEffect(() => {
+    localStorage.setItem(`favorites_${userName}`, JSON.stringify(favorites));
+  }, [favorites, userName]);
 
   // Sync active order to sessionStorage
   useEffect(() => {
@@ -33,14 +61,12 @@ export default function StudentView() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const userName = sessionStorage.getItem("userName") || "Student";
-
   // Load initial data
   useEffect(() => {
     const fetchMenu = async () => {
       try {
         const result = await getMenu();
-        if (result && result.menu && result.menu.length > 0) {
+        if (result && Array.isArray(result.menu) && result.menu.length > 0) {
           setMenuItemsList(result.menu);
         }
       } catch (e) {
@@ -89,9 +115,33 @@ export default function StudentView() {
     return () => clearInterval(interval);
   }, [orderPlaced]);
 
-  const filteredItemsList = activeCategory === "All"
-    ? menuItemsList
-    : menuItemsList.filter((item) => item.category === activeCategory);
+  let filteredItemsList = menuItemsList;
+  
+  // Category Filter
+  if (activeCategory === "Favorites") {
+    filteredItemsList = filteredItemsList.filter(item => (favorites || []).includes(item?.id));
+  } else if (activeCategory !== "All") {
+    filteredItemsList = filteredItemsList.filter((item) => item?.category === activeCategory);
+  }
+
+  // Veg Only Filter
+  if (vegOnly) {
+    filteredItemsList = filteredItemsList.filter(item => item?.isVeg);
+  }
+
+  // Search Filter
+  if (searchQuery.trim() !== "") {
+    filteredItemsList = filteredItemsList.filter(item => 
+      item?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  const toggleFavorite = (e, id) => {
+    e.stopPropagation();
+    setFavorites(prev => 
+      prev.includes(id) ? prev.filter(fId => fId !== id) : [...prev, id]
+    );
+  };
 
   const addToCart = (item) => {
     if (!item.isAvailable) {
@@ -116,13 +166,14 @@ export default function StudentView() {
 
   const cartTotal = cart.reduce((sum, c) => sum + c.price * c.quantity, 0);
   const cartCount = cart.reduce((sum, c) => sum + c.quantity, 0);
-  const cartWaitTime = cart.length > 0 ? Math.max(...cart.map(c => c.prepTime)) + queueStatus.estimated_wait_minutes : 0;
+  const cartWaitTime = cart.length > 0 ? Math.max(...cart.map(c => c.prepTime)) + (queueStatus?.estimated_wait_minutes || 0) : 0;
 
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return;
 
     const orderData = {
       student_name: userName,
+      payment_mode: paymentMode,
       items: cart.map((c) => ({
         item_id: c.id,
         item_name: c.name,
@@ -154,6 +205,7 @@ export default function StudentView() {
         price: c.price,
       })),
       total: cartTotal,
+      payment_mode: paymentMode,
       status: "placed",
       placed_at: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }),
       estimated_ready: `~${cartWaitTime} min`,
@@ -197,6 +249,9 @@ export default function StudentView() {
 
         </div>
         <div className="header-actions">
+          <button className="btn-icon" onClick={() => setShowHistory(true)} title="Order History">
+            <FaHistory />
+          </button>
           <button className="theme-toggle-btn" onClick={toggleTheme} title="Toggle theme">
             {isDark ? <FaSun /> : <FaMoon />}
           </button>
@@ -250,56 +305,92 @@ export default function StudentView() {
 
       {/* Category Tabs */}
       <div className="category-tabs">
-        {categories.map((cat) => (
+        {["Favorites", ...categories].map((cat) => (
           <button
             key={cat}
             className={`chip ${activeCategory === cat ? "active" : ""}`}
             onClick={() => setActiveCategory(cat)}
           >
-            {categoryEmojis[cat]} {cat}
+            {cat === "Favorites" ? "❤️" : categoryEmojis[cat]} {cat}
           </button>
         ))}
       </div>
 
+      {/* Filters (Search & Dietary) */}
+      <div className="filters-bar animate-fadeIn">
+        <div className="search-box glass">
+          <FaSearch className="search-icon" />
+          <input 
+            type="text" 
+            placeholder="Search for biryani, dosa..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <button 
+          className={`btn-veg-toggle ${vegOnly ? 'active' : ''}`}
+          onClick={() => setVegOnly(!vegOnly)}
+        >
+          <span className="veg-dot"></span> Veg Only
+        </button>
+      </div>
+
       {/* Menu Grid */}
       <div className="menu-grid">
-        {filteredItemsList.map((item, i) => (
+        {filteredItemsList.length === 0 && (
+          <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
+            <p>No items found matching your filters.</p>
+          </div>
+        )}
+        {filteredItemsList.length > 0 && filteredItemsList.map((item, i) => (
           <div
-            key={item.id}
-            className={`menu-card card ${!item.isAvailable ? 'unavailable' : ''}`}
+            key={item?.id || i}
+            className={`menu-card card ${!item?.isAvailable ? 'unavailable' : ''}`}
             style={{ animationDelay: `${i * 0.05}s` }}
           >
             <div className="menu-card-image-container">
-              {item.image && (
+              {item?.image && typeof item.image === 'string' && (
                 <img 
                   src={item.image.startsWith('/') ? item.image : `/${item.image}`} 
-                  alt={item.name} 
+                  alt={item?.name || 'Item'} 
                   className="menu-card-image" 
                   loading="lazy"
                 />
               )}
+              
+              {/* Favorite Button */}
+              <button 
+                className={`btn-icon-sm btn-favorite ${(favorites || []).includes(item?.id) ? 'active' : ''}`}
+                onClick={(e) => toggleFavorite(e, item?.id)}
+              >
+                {(favorites || []).includes(item?.id) ? <FaHeart /> : <FaRegHeart />}
+              </button>
+
               <div className="menu-card-top">
-                <span className="menu-emoji">{item.emoji}</span>
-                {item.isAvailable ? (
-                  item.prepTime <= 4 && <span className="badge badge-cyan"><FaBolt /> Quick</span>
+                <span className="menu-emoji">{item?.emoji || '🍽️'}</span>
+                {item?.isAvailable ? (
+                  item?.prepTime <= 4 && <span className="badge badge-cyan"><FaBolt /> Quick</span>
                 ) : (
                   <span className="badge badge-red">Out of Stock</span>
                 )}
               </div>
             </div>
-            <h3 className="menu-card-name">{item.name}</h3>
-            <p className="menu-card-desc">{item.description}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className={`diet-indicator ${item?.isVeg !== false ? 'veg' : 'non-veg'}`}></span>
+              <h3 className="menu-card-name">{item?.name || 'Unknown Item'}</h3>
+            </div>
+            <p className="menu-card-desc">{item?.description || ''}</p>
             <div className="menu-card-meta">
-              <span className="menu-price">₹{item.price}</span>
-              <span className="menu-time"><FaClock /> {item.prepTime} min</span>
-              <span className="menu-rating"><FaStar /> {item.rating}</span>
+              <span className="menu-price">₹{item?.price || 0}</span>
+              <span className="menu-time"><FaClock /> {item?.prepTime || 5} min</span>
+              <span className="menu-rating"><FaStar /> {item?.rating || 4.0}</span>
             </div>
             <button
-              className={`btn ${item.isAvailable ? 'btn-primary' : 'btn-secondary disabled'} btn-sm menu-add-btn`}
-              onClick={() => addToCart(item)}
-              disabled={!item.isAvailable}
+              className={`btn ${item?.isAvailable ? 'btn-primary' : 'btn-secondary disabled'} btn-sm menu-add-btn`}
+              onClick={() => item && addToCart(item)}
+              disabled={!item?.isAvailable}
             >
-              {item.isAvailable ? <><FaPlus /> Add</> : 'Unavailable'}
+              {item?.isAvailable ? <><FaPlus /> Add</> : 'Unavailable'}
             </button>
           </div>
         ))}
@@ -320,9 +411,10 @@ export default function StudentView() {
               { id: "completed", label: "Picked Up", icon: "✅" }
             ].map((step, i, arr) => {
               const statusOrder = ["placed", "preparing", "ready", "completed"];
-              const currentIndex = statusOrder.indexOf(orderPlaced.status);
+              const currentStatus = orderPlaced?.status || "placed";
+              const currentIndex = statusOrder.indexOf(currentStatus);
               const isActive = currentIndex >= i;
-              const isCurrent = orderPlaced.status === step.id;
+              const isCurrent = currentStatus === step.id;
 
               return (
                 <div key={step.id} className={`order-step ${isActive ? "active" : ""} ${isCurrent ? "current" : ""}`}>
@@ -335,9 +427,9 @@ export default function StudentView() {
             })}
           </div>
           <p className="order-wait">
-            {orderPlaced.status === "ready"
+            {orderPlaced?.status === "ready"
               ? <strong className="animate-pulse" style={{ color: "var(--green-light)", fontSize: "1.1rem" }}>🍱 Your food is ready at the counter!</strong>
-              : `Status: ${orderPlaced.status.charAt(0).toUpperCase() + orderPlaced.status.slice(1)}`}
+              : `Status: ${(orderPlaced?.status || "placed").charAt(0).toUpperCase() + (orderPlaced?.status || "placed").slice(1)}`}
           </p>
         </div>
       )}
@@ -381,12 +473,73 @@ export default function StudentView() {
                     <span>Est. Wait</span>
                     <span className="cart-wait">{cartWaitTime} min</span>
                   </div>
+
+                  {/* Payment Mode Selector */}
+                  <div className="payment-section">
+                    <p className="payment-label">💳 Payment Method</p>
+                    <div className="payment-options">
+                      {[
+                        { id: "upi", label: "UPI", icon: <FaMobileAlt />, color: "#6C5CE7" },
+                        { id: "card", label: "Card", icon: <FaCreditCard />, color: "#00B894" },
+                        { id: "cash", label: "Cash", icon: <FaMoneyBillWave />, color: "#FDCB6E" },
+                        { id: "wallet", label: "Wallet", icon: <FaWallet />, color: "#E17055" },
+                      ].map((pm) => (
+                        <button
+                          key={pm.id}
+                          className={`payment-btn ${paymentMode === pm.id ? "active" : ""}`}
+                          onClick={() => setPaymentMode(pm.id)}
+                          style={paymentMode === pm.id ? { borderColor: pm.color, background: `${pm.color}15` } : {}}
+                        >
+                          <span className="payment-icon" style={paymentMode === pm.id ? { color: pm.color } : {}}>{pm.icon}</span>
+                          <span>{pm.label}</span>
+                          {paymentMode === pm.id && <FaCheck className="payment-check" style={{ color: pm.color }} />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <button className="btn btn-primary btn-lg cart-checkout-btn" onClick={handlePlaceOrder}>
-                    Place Order • ₹{cartTotal}
+                    Pay ₹{cartTotal} via {paymentMode.toUpperCase()}
                   </button>
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Order History Modal */}
+      {showHistory && (
+        <div className="cart-overlay" onClick={() => setShowHistory(false)}>
+          <div className="cart-panel glass-strong" onClick={(e) => e.stopPropagation()}>
+            <div className="cart-header">
+              <h3>📜 Order History</h3>
+              <button className="btn-icon" onClick={() => setShowHistory(false)}><FaTimes /></button>
+            </div>
+            <div className="cart-items" style={{ padding: '20px' }}>
+              {pastOrders.length === 0 ? (
+                <p className="cart-empty">You haven't placed any orders yet.</p>
+              ) : (
+                pastOrders.map((order, idx) => (
+                  <div key={idx} className="card" style={{ marginBottom: '12px', padding: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <strong>{order.id}</strong>
+                      <span className="text-muted">{order.placed_at}</span>
+                    </div>
+                    {(order.items || []).map((item, j) => (
+                      <div key={j} style={{ fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span>{item.emoji} {item.quantity}x {item.item_name}</span>
+                        <span>₹{item.price * item.quantity}</span>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-color)', fontWeight: 'bold' }}>
+                      <span>Total ({order.payment_mode ? order.payment_mode.toUpperCase() : 'UPI'})</span>
+                      <span style={{ color: 'var(--green-light)' }}>₹{order.total}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
