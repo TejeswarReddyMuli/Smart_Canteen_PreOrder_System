@@ -14,6 +14,61 @@
   backdrop-filter: blur(20px);
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.overflow-menu-wrapper {
+  position: relative;
+}
+
+.floating-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+}
+
+.overflow-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 220px;
+  padding: 10px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  background: rgba(13, 18, 31, 0.98);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+  z-index: 120;
+}
+
+.overflow-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.overflow-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
 .btn-icon {
   width: 40px; height: 40px;
   display: flex; align-items: center; justify-content: center;
@@ -437,6 +492,146 @@
   margin-top: 10px;
 }
 
+.order-panel-body,
+.history-panel-body {
+  padding-top: 20px;
+}
+
+.order-summary-card,
+.history-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.order-summary-card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.order-summary-top,
+.history-card-header,
+.history-total-row,
+.history-item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.order-summary-label {
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.order-summary-top h4 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.order-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.order-summary-metrics div {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.order-summary-metrics span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.order-summary-metrics strong {
+  font-size: 0.96rem;
+}
+
+.order-summary-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.order-summary-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.order-status-pill {
+  align-self: flex-start;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.status-placed {
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+}
+
+.status-preparing {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fcd34d;
+}
+
+.status-ready,
+.history-total-row span:last-child {
+  background: rgba(16, 185, 129, 0.14);
+  color: #6ee7b7;
+}
+
+.status-completed {
+  background: rgba(168, 85, 247, 0.16);
+  color: #d8b4fe;
+}
+
+.history-card {
+  margin-bottom: 12px;
+  padding: 14px;
+}
+
+.history-card-header {
+  margin-bottom: 10px;
+}
+
+.history-item-row {
+  padding: 6px 0;
+  font-size: 0.88rem;
+}
+
+.history-total-row {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  font-weight: 700;
+}
+
+.history-total-row span:last-child {
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
 /* Notifications */
 .notification-wrapper {
   position: relative;
@@ -582,16 +777,42 @@
 }
 
 @media (max-width: 768px) {
+  .student-header {
+    padding: 12px 16px;
+  }
+
+  .student-subtitle {
+    display: none;
+  }
+
   .menu-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
+
   .notifications-dropdown {
     position: fixed;
     top: 70px;
     right: 16px;
     left: 16px;
     width: auto;
+  }
+
+  .overflow-menu {
+    min-width: 200px;
+  }
+
+  .order-summary-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .payment-options {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
